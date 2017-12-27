@@ -1,0 +1,677 @@
+K 25
+svn:wc:ra_dav:version-url
+V 62
+/gemini-sw/!svn/ver/2594/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db
+END
+mechanism.sch
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/gemini-sw/!svn/ver/2594/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/mechanism.sch
+END
+m2SysStat.sym
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/gemini-sw/!svn/ver/2594/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/m2SysStat.sym
+END
+monitors.sym
+K 25
+svn:wc:ra_dav:version-url
+V 75
+/gemini-sw/!svn/ver/2594/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/monitors.sym
+END
+refmem.sym
+K 25
+svn:wc:ra_dav:version-url
+V 73
+/gemini-sw/!svn/ver/2594/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/refmem.sym
+END
+pid.sym
+K 25
+svn:wc:ra_dav:version-url
+V 70
+/gemini-sw/!svn/ver/2594/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/pid.sym
+END
+baffle.sym
+K 25
+svn:wc:ra_dav:version-url
+V 73
+/gemini-sw/!svn/ver/2594/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/baffle.sym
+END
+driveDB.sym
+K 25
+svn:wc:ra_dav:version-url
+V 74
+/gemini-sw/!svn/ver/2594/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/driveDB.sym
+END
+showEng.sch
+K 25
+svn:wc:ra_dav:version-url
+V 74
+/gemini-sw/!svn/ver/2594/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/showEng.sch
+END
+test.sym
+K 25
+svn:wc:ra_dav:version-url
+V 71
+/gemini-sw/!svn/ver/2594/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/test.sym
+END
+chopLimits.sch
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/gemini-sw/!svn/ver/2594/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/chopLimits.sch
+END
+snlStates.sym
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/gemini-sw/!svn/ver/2594/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/snlStates.sym
+END
+tcsSad.sym
+K 25
+svn:wc:ra_dav:version-url
+V 73
+/gemini-sw/!svn/ver/2594/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/tcsSad.sym
+END
+m2.sch
+K 25
+svn:wc:ra_dav:version-url
+V 69
+/gemini-sw/!svn/ver/2594/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/m2.sch
+END
+house.sym
+K 25
+svn:wc:ra_dav:version-url
+V 72
+/gemini-sw/!svn/ver/2594/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/house.sym
+END
+decs.sch
+K 25
+svn:wc:ra_dav:version-url
+V 71
+/gemini-sw/!svn/ver/2594/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/decs.sch
+END
+driveCB.sch
+K 25
+svn:wc:ra_dav:version-url
+V 74
+/gemini-sw/!svn/ver/2594/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/driveCB.sch
+END
+clearGuideFocusP.sym
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/gemini-sw/!svn/ver/2594/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/clearGuideFocusP.sym
+END
+guideSad.sym
+K 25
+svn:wc:ra_dav:version-url
+V 75
+/gemini-sw/!svn/ver/2594/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/guideSad.sym
+END
+selector.sch
+K 25
+svn:wc:ra_dav:version-url
+V 75
+/gemini-sw/!svn/ver/2594/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/selector.sch
+END
+showGuides.sch
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/gemini-sw/!svn/ver/2594/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/showGuides.sch
+END
+real.sch
+K 25
+svn:wc:ra_dav:version-url
+V 71
+/gemini-sw/!svn/ver/2594/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/real.sch
+END
+scs.sym
+K 25
+svn:wc:ra_dav:version-url
+V 70
+/gemini-sw/!svn/ver/2594/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/scs.sym
+END
+tiltmonitor.sch
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/gemini-sw/!svn/ver/2594/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/tiltmonitor.sch
+END
+driveOffloader.sym
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/gemini-sw/!svn/ver/2594/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/driveOffloader.sym
+END
+cadplus.sym
+K 25
+svn:wc:ra_dav:version-url
+V 74
+/gemini-sw/!svn/ver/2594/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/cadplus.sym
+END
+instruments.sch
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/gemini-sw/!svn/ver/2594/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/instruments.sch
+END
+snl.sch
+K 25
+svn:wc:ra_dav:version-url
+V 70
+/gemini-sw/!svn/ver/2594/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/snl.sch
+END
+phasorControl.sch
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/gemini-sw/!svn/ver/2594/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/phasorControl.sch
+END
+showbits.sym
+K 25
+svn:wc:ra_dav:version-url
+V 75
+/gemini-sw/!svn/ver/2594/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/showbits.sym
+END
+Makefile
+K 25
+svn:wc:ra_dav:version-url
+V 71
+/gemini-sw/!svn/ver/2591/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/Makefile
+END
+scssir.sym
+K 25
+svn:wc:ra_dav:version-url
+V 73
+/gemini-sw/!svn/ver/2594/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/scssir.sym
+END
+decsEng.sym
+K 25
+svn:wc:ra_dav:version-url
+V 74
+/gemini-sw/!svn/ver/2594/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/decsEng.sym
+END
+statusSad.sym
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/gemini-sw/!svn/ver/2594/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/statusSad.sym
+END
+tilt.sym
+K 25
+svn:wc:ra_dav:version-url
+V 71
+/gemini-sw/!svn/ver/2594/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/tilt.sym
+END
+m2SysStat.sch
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/gemini-sw/!svn/ver/2594/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/m2SysStat.sch
+END
+monitors.sch
+K 25
+svn:wc:ra_dav:version-url
+V 75
+/gemini-sw/!svn/ver/2594/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/monitors.sch
+END
+control.sym
+K 25
+svn:wc:ra_dav:version-url
+V 74
+/gemini-sw/!svn/ver/2594/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/control.sym
+END
+refmem.sch
+K 25
+svn:wc:ra_dav:version-url
+V 73
+/gemini-sw/!svn/ver/2594/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/refmem.sch
+END
+pid.sch
+K 25
+svn:wc:ra_dav:version-url
+V 70
+/gemini-sw/!svn/ver/2594/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/pid.sch
+END
+baffle.sch
+K 25
+svn:wc:ra_dav:version-url
+V 73
+/gemini-sw/!svn/ver/2594/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/baffle.sch
+END
+driveDB.sch
+K 25
+svn:wc:ra_dav:version-url
+V 74
+/gemini-sw/!svn/ver/2594/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/driveDB.sch
+END
+test.sch
+K 25
+svn:wc:ra_dav:version-url
+V 71
+/gemini-sw/!svn/ver/2594/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/test.sch
+END
+snlStates.sch
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/gemini-sw/!svn/ver/2594/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/snlStates.sch
+END
+tdct.cfg
+K 25
+svn:wc:ra_dav:version-url
+V 71
+/gemini-sw/!svn/ver/2591/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/tdct.cfg
+END
+tcsSad.sch
+K 25
+svn:wc:ra_dav:version-url
+V 73
+/gemini-sw/!svn/ver/2594/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/tcsSad.sch
+END
+house.sch
+K 25
+svn:wc:ra_dav:version-url
+V 72
+/gemini-sw/!svn/ver/2594/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/house.sch
+END
+coords.sym
+K 25
+svn:wc:ra_dav:version-url
+V 73
+/gemini-sw/!svn/ver/2594/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/coords.sym
+END
+guideSad.sch
+K 25
+svn:wc:ra_dav:version-url
+V 75
+/gemini-sw/!svn/ver/2594/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/guideSad.sch
+END
+driveXY.sym
+K 25
+svn:wc:ra_dav:version-url
+V 74
+/gemini-sw/!svn/ver/2594/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/driveXY.sym
+END
+positionSad.sym
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/gemini-sw/!svn/ver/2594/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/positionSad.sym
+END
+scs.sch
+K 25
+svn:wc:ra_dav:version-url
+V 70
+/gemini-sw/!svn/ver/2594/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/scs.sch
+END
+driveOffloader.sch
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/gemini-sw/!svn/ver/2594/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/driveOffloader.sch
+END
+cadplus.sch
+K 25
+svn:wc:ra_dav:version-url
+V 74
+/gemini-sw/!svn/ver/2594/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/cadplus.sch
+END
+beamJog.sym
+K 25
+svn:wc:ra_dav:version-url
+V 74
+/gemini-sw/!svn/ver/2594/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/beamJog.sym
+END
+car.sym
+K 25
+svn:wc:ra_dav:version-url
+V 70
+/gemini-sw/!svn/ver/2594/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/car.sym
+END
+vtkControl.sym
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/gemini-sw/!svn/ver/2594/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/vtkControl.sym
+END
+hwrecorddefs.cfg
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/gemini-sw/!svn/ver/2591/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/hwrecorddefs.cfg
+END
+move.sym
+K 25
+svn:wc:ra_dav:version-url
+V 71
+/gemini-sw/!svn/ver/2594/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/move.sym
+END
+showbits.sch
+K 25
+svn:wc:ra_dav:version-url
+V 75
+/gemini-sw/!svn/ver/2594/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/showbits.sch
+END
+lookup.sym
+K 25
+svn:wc:ra_dav:version-url
+V 73
+/gemini-sw/!svn/ver/2594/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/lookup.sym
+END
+m2sad.sch
+K 25
+svn:wc:ra_dav:version-url
+V 72
+/gemini-sw/!svn/ver/2594/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/m2sad.sch
+END
+scssir.sch
+K 25
+svn:wc:ra_dav:version-url
+V 73
+/gemini-sw/!svn/ver/2594/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/scssir.sch
+END
+decsEng.sch
+K 25
+svn:wc:ra_dav:version-url
+V 74
+/gemini-sw/!svn/ver/2594/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/decsEng.sch
+END
+demandSad.sym
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/gemini-sw/!svn/ver/2594/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/demandSad.sym
+END
+statusSad.sch
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/gemini-sw/!svn/ver/2594/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/statusSad.sch
+END
+template.sch
+K 25
+svn:wc:ra_dav:version-url
+V 75
+/gemini-sw/!svn/ver/2594/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/template.sch
+END
+tilt.sch
+K 25
+svn:wc:ra_dav:version-url
+V 71
+/gemini-sw/!svn/ver/2594/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/tilt.sch
+END
+driveFollower.sym
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/gemini-sw/!svn/ver/2594/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/driveFollower.sym
+END
+control.sch
+K 25
+svn:wc:ra_dav:version-url
+V 74
+/gemini-sw/!svn/ver/2594/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/control.sch
+END
+chop.sym
+K 25
+svn:wc:ra_dav:version-url
+V 71
+/gemini-sw/!svn/ver/2594/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/chop.sym
+END
+periscope.sym
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/gemini-sw/!svn/ver/2594/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/periscope.sym
+END
+frame.sym
+K 25
+svn:wc:ra_dav:version-url
+V 72
+/gemini-sw/!svn/ver/2594/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/frame.sym
+END
+highSpeedWaveformCtrl.sym
+K 25
+svn:wc:ra_dav:version-url
+V 88
+/gemini-sw/!svn/ver/2594/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/highSpeedWaveformCtrl.sym
+END
+m2Time.sym
+K 25
+svn:wc:ra_dav:version-url
+V 73
+/gemini-sw/!svn/ver/2594/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/m2Time.sym
+END
+guide.sym
+K 25
+svn:wc:ra_dav:version-url
+V 72
+/gemini-sw/!svn/ver/2594/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/guide.sym
+END
+tiltaxes.sym
+K 25
+svn:wc:ra_dav:version-url
+V 75
+/gemini-sw/!svn/ver/2594/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/tiltaxes.sym
+END
+coords.sch
+K 25
+svn:wc:ra_dav:version-url
+V 73
+/gemini-sw/!svn/ver/2594/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/coords.sch
+END
+driveXY.sch
+K 25
+svn:wc:ra_dav:version-url
+V 74
+/gemini-sw/!svn/ver/2594/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/driveXY.sch
+END
+axes.sym
+K 25
+svn:wc:ra_dav:version-url
+V 71
+/gemini-sw/!svn/ver/2594/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/axes.sym
+END
+m2SysStatScans.sym
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/gemini-sw/!svn/ver/2594/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/m2SysStatScans.sym
+END
+positionSad.sch
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/gemini-sw/!svn/ver/2594/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/positionSad.sch
+END
+follow.sym
+K 25
+svn:wc:ra_dav:version-url
+V 73
+/gemini-sw/!svn/ver/2594/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/follow.sym
+END
+mechanism.sym
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/gemini-sw/!svn/ver/2594/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/mechanism.sym
+END
+beamJog.sch
+K 25
+svn:wc:ra_dav:version-url
+V 74
+/gemini-sw/!svn/ver/2594/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/beamJog.sch
+END
+car.sch
+K 25
+svn:wc:ra_dav:version-url
+V 70
+/gemini-sw/!svn/ver/2594/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/car.sch
+END
+showEng.sym
+K 25
+svn:wc:ra_dav:version-url
+V 74
+/gemini-sw/!svn/ver/2594/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/showEng.sym
+END
+vtkControl.sch
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/gemini-sw/!svn/ver/2594/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/vtkControl.sch
+END
+chopLimits.sym
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/gemini-sw/!svn/ver/2594/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/chopLimits.sym
+END
+move.sch
+K 25
+svn:wc:ra_dav:version-url
+V 71
+/gemini-sw/!svn/ver/2594/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/move.sch
+END
+lookup.sch
+K 25
+svn:wc:ra_dav:version-url
+V 73
+/gemini-sw/!svn/ver/2594/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/lookup.sch
+END
+decs.sym
+K 25
+svn:wc:ra_dav:version-url
+V 71
+/gemini-sw/!svn/ver/2594/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/decs.sym
+END
+driveCB.sym
+K 25
+svn:wc:ra_dav:version-url
+V 74
+/gemini-sw/!svn/ver/2594/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/driveCB.sym
+END
+selector.sym
+K 25
+svn:wc:ra_dav:version-url
+V 75
+/gemini-sw/!svn/ver/2594/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/selector.sym
+END
+showGuides.sym
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/gemini-sw/!svn/ver/2594/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/showGuides.sym
+END
+real.sym
+K 25
+svn:wc:ra_dav:version-url
+V 71
+/gemini-sw/!svn/ver/2594/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/real.sym
+END
+tiltmonitor.sym
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/gemini-sw/!svn/ver/2594/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/tiltmonitor.sym
+END
+demandSad.sch
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/gemini-sw/!svn/ver/2594/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/demandSad.sch
+END
+driveFollower.sch
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/gemini-sw/!svn/ver/2594/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/driveFollower.sch
+END
+mechsim.sch
+K 25
+svn:wc:ra_dav:version-url
+V 74
+/gemini-sw/!svn/ver/2594/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/mechsim.sch
+END
+instruments.sym
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/gemini-sw/!svn/ver/2594/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/instruments.sym
+END
+snl.sym
+K 25
+svn:wc:ra_dav:version-url
+V 70
+/gemini-sw/!svn/ver/2594/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/snl.sym
+END
+phasorControl.sym
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/gemini-sw/!svn/ver/2594/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/phasorControl.sym
+END
+chop.sch
+K 25
+svn:wc:ra_dav:version-url
+V 71
+/gemini-sw/!svn/ver/2594/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/chop.sch
+END
+periscope.sch
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/gemini-sw/!svn/ver/2594/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/periscope.sch
+END
+frame.sch
+K 25
+svn:wc:ra_dav:version-url
+V 72
+/gemini-sw/!svn/ver/2594/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/frame.sch
+END
+highSpeedWaveformCtrl.sch
+K 25
+svn:wc:ra_dav:version-url
+V 88
+/gemini-sw/!svn/ver/2594/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/highSpeedWaveformCtrl.sch
+END
+m2Time.sch
+K 25
+svn:wc:ra_dav:version-url
+V 73
+/gemini-sw/!svn/ver/2594/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/m2Time.sch
+END
+guide.sch
+K 25
+svn:wc:ra_dav:version-url
+V 72
+/gemini-sw/!svn/ver/2594/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/guide.sch
+END
+tiltaxes.sch
+K 25
+svn:wc:ra_dav:version-url
+V 75
+/gemini-sw/!svn/ver/2594/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/tiltaxes.sch
+END
+axes.sch
+K 25
+svn:wc:ra_dav:version-url
+V 71
+/gemini-sw/!svn/ver/2594/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/axes.sch
+END
+m2SysStatScans.sch
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/gemini-sw/!svn/ver/2594/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/m2SysStatScans.sch
+END
+follow.sch
+K 25
+svn:wc:ra_dav:version-url
+V 73
+/gemini-sw/!svn/ver/2594/gem/trunk/ioc/scs/cp/scs-cp-iocApp/Db/follow.sch
+END
