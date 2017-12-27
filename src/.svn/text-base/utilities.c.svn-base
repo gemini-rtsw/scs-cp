@@ -55,7 +55,6 @@
 #include "utilities.h"
 #include "chopControl.h"     /* For chopEventSem */
 #include "control.h"         /* For controller */
-#include "elgLib.h"          /* For MSG_Q_ID definition, XTILT, YTILT, ZFOCUS */
 #include "guide.h"           /* For guideOn, weight */
 #include "interlock.h"       /* For scsState */
 #include "setup.h"           /* For healthQId */
@@ -93,6 +92,9 @@ frameChange *ag2m2[MAX_SOURCES];
 // SEM_ID pvLoadComplete = NULL;
 epicsEventId doPvLoad;
 epicsEventId pvLoadComplete;
+
+
+extern epicsMessageQueueId healthQId;
 
 
 frameOfReference frame =
@@ -838,7 +840,7 @@ int errorLog (char *errorString, int debugLevelRqst, int fileLog)
     {
         if(debugLevel >= debugLevelRqst)
         {
-        logMsg("errorLog - error reading timeStamp\n", 0, 0, 0, 0, 0, 0);
+        errlogMessage("errorLog - error reading timeStamp\n");
         return(ERROR);
         }
     }
@@ -853,7 +855,7 @@ int errorLog (char *errorString, int debugLevelRqst, int fileLog)
 
     if(debugLevel >= debugLevelRqst)
     {
-        logMsg("%s\n", (int)errMsg, 0, 0, 0, 0, 0);
+        errlogPrintf("%s\n", errMsg);
     }
 
     return(OK);
@@ -912,13 +914,13 @@ int reportHealth(int severity, char *message)
         newReport.severity = severity;
 
     strncpy(newReport.message, message, MAX_STRING_SIZE - 1);
-    newReport.message[MAX_STRING_SIZE - 1] = NULL;
+    newReport.message[MAX_STRING_SIZE - 1] = 0;
 
     /* write structure to message queue */
 
-    if (msgQSend (healthQId, (char *) &newReport, sizeof (healthReport), SEM_TIMEOUT, MSG_PRI_NORMAL) == ERROR)
+    if (epicsMessageQueueSendWithTimeout(healthQId, &newReport, sizeof(healthReport), SEM_TIMEOUT) == ERROR)
     {
-        printf ("failed to append health severity %d, message >  %s to health queue\n", newReport.severity, newReport.message);
+        errlogPrintf ("failed to append health severity %d, message >  %s to health queue\n", newReport.severity, newReport.message);
         return (ERROR);
     }
     return (OK);
@@ -941,7 +943,7 @@ long readHealth(struct genSubRecord *pgsub)
 
     /* fetch command from health queue */
 
-    if(msgQReceive (healthQId, (char *) &health, sizeof (healthReport), NO_WAIT) != ERROR)
+    if(epicsMessageQueueTryReceive(healthQId, &health, sizeof(healthReport)) != ERROR)
     {
         switch(health.severity)
         {
@@ -959,11 +961,14 @@ long readHealth(struct genSubRecord *pgsub)
     return(OK);
 }   
 
-int loadInitFiles(void)
+
+
+/* why aren't these being loaded in the startup script? */
+int loadInitFiles(void*p)
 {
    for(;;)
    {
-      epicsEventMustWait(dpPvLoad);
+      epicsEventMustWait(doPvLoad);
 
       errlogPrintf("pvload initialisation data\n");
 
@@ -996,7 +1001,7 @@ int loadInitFiles(void)
 long  driveEvent (struct subRecord * psub)
 {
     if(psub->a > 0)
-        semGive(chopEventSem);
+        epicsEventSignal(chopEventSem);
 
     return(OK);
 }
@@ -1166,13 +1171,10 @@ long    scsStateStringConvert (struct genSubRecord * pgsub)
 
 double confine (double value, double upper, double lower)
 {
-    char message[MAX_STRING_SIZE];
-
     if (upper < lower) 
     {
-        sprintf(message, "confine - Upper (%f) < lower (%f)",
-            upper, lower);
-        logMsg ("%s\n", (int)message, 0, 0, 0, 0, 0);
+        errlogPrintf("confine - Upper (%f) < lower (%f)",
+                      upper, lower);
     };
 	
     if (value > upper)
@@ -1233,7 +1235,7 @@ double control (int axis, double input, double systemOutput)
 
     if (axis < 0 || axis > 2)
     {
-        logMsg ("control - axis out of range\n", 0, 0, 0, 0, 0, 0);
+        errlogMessage ("control - axis out of range\n");
         return (0.0);
     }
     else
@@ -1453,13 +1455,13 @@ int  modifyFrame
 
     if (f == NULL)
     {
-        logMsg("Conversion frame not initialised\n", 0, 0, 0, 0, 0 ,0);
+        errlogMessage("Conversion frame not initialised\n");
             return(ERROR);
     }
         
     /* access frame */
 
-    if(semTake(f->access, WFS_TIMEOUT) == OK)
+    if(epicsMutexTryLock(f->access))
     {
         /* update the structure */
 
@@ -1472,15 +1474,10 @@ int  modifyFrame
         f->scaleY   = scaleY;
         f->scaleZ   = scaleZ;
 
-        semGive(f->access);
+        epicsMutexUnlock(f->access);
+    }
 
         return (OK);
-    }
-    else
-    {
-        logMsg("Modify frame - unable to get mutex for conversion frame\n", 0, 0, 0, 0 ,0 ,0);
-        return(ERROR);
-    }
 }
 
 /* ===================================================================== */
@@ -1539,16 +1536,16 @@ int   showFrame (int source)
 
     /* access frame */
 
-    if(semTake(f->access, WFS_TIMEOUT) == OK)
+    if(epicsMutexTryLock(f->access) == OK)
     {
         /* copy the frame contents */
 
         grab = *f;
-        semGive(f->access);
+        epicsMutexUnlock(f->access);
     }
     else
     {
-        logMsg("showFrame - unable to get mutex for conversion frame\n", 0, 0, 0, 0 ,0 ,0);
+        errlogMessage("showFrame - unable to get mutex for conversion frame\n");
         return(ERROR);
     }
 
@@ -1566,6 +1563,7 @@ int   showFrame (int source)
     return (OK);
 }
 
+#ifdef MK
 double vtkscale = 1.0;
 
 int vtkControl (Vtk *vtk, double guideError) {
@@ -1725,6 +1723,8 @@ int myround_nearest10(int n) {
     return tmp; 
     
 }
+
+#endif
 
 /* ===================================================================== */
 /* INDENT OFF */

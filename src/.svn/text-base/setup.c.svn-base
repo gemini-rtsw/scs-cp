@@ -31,10 +31,20 @@
  * 31-Mar-1998: Original (srp)
  * 23-Jun-1998: Create message queue for health reporting
  * 07-May-1999: Added RCS id
+ * 05-Dec-2017: Begin conversion to EPICS OSI (mdw)
  *
+ * oi
  */
 /* INDENT ON */
 /* ===================================================================== */
+
+#include <stdlib.h>     /* for malloc() */
+#include <string.h>
+#include <stdio.h>
+
+#include <dbAccess.h>   /* For dbNameToAddr */
+#include <devSup.h>     /* for S_dev_???   */
+#include <vmi5588.h>    /* FOr reflective memory card routines */
 
 #include "setup.h"
 #include "utilities.h"  /* For errorLog, loadInitFiles, compileStatus,
@@ -47,15 +57,6 @@
                            scsReceiveNow, commandQId, receiveQId 
                            SYSTEM_CLOCK_RATE */
 
-#include <string.h>
-#include <stdio.h>
-
-#include <logLib.h> /* For logMsg */
-#include <dbAccess.h>   /* For dbNameToAddr */
-
-#include <taskLib.h>
-#include <sysLib.h> /* For sysXXX */
-#include <vxLib.h>  /* For vxMemProbe */
 
 #define TOP "m2:"
 
@@ -68,8 +69,7 @@
 
 /* Declare externals */
 
-MSG_Q_ID healthQId = NULL;
-SEM_ID scsReady = NULL;
+epicsMessageQueueId  healthQId = NULL;
 
 /* ===================================================================== */
 /* INDENT OFF */
@@ -118,7 +118,8 @@ SEM_ID scsReady = NULL;
  * History:
  * 15-Oct-1997: Original(srp)
  * 10-Feb-1998: Incorporate spawning of guide handling tasks
- * 
+ * 05-Dec-2017: Removed scsReady semaphore creation code since the semaphore
+ *              wasn't being used anywhere. (mdw)
  */
 
 /* INDENT ON */
@@ -128,37 +129,11 @@ int scsInit (void)
 {
    int source = PWFS1;
    char pRecordName[MAX_STRING_SIZE];
-   char test = 0;
 
-   /* create holding semaphore to prevent execution before intialisation */
-
-   if ((scsReady = semBCreate (SEM_Q_PRIORITY, SEM_EMPTY)) == NULL)
-   {
-      printf ("unable to create scsReady sem\n");
-      return (ERROR);
-   }
 
    /* create semaphores to control pvload of initialisation files */
-
-   if ((doPvLoad = semBCreate (SEM_Q_PRIORITY, SEM_EMPTY)) == NULL)
-   {
-      printf ("unable to create doPvload sem\n");
-      return (ERROR);
-   }
-
-   if ((pvLoadComplete = semBCreate (SEM_Q_PRIORITY, SEM_EMPTY)) == NULL)
-   {
-      printf ("unable to create pvLoadComplete sem\n");
-      return (ERROR);
-   }
-
-   /* create semaphore to control data logging */
-
-   if ((logNow = semBCreate (SEM_Q_PRIORITY, SEM_EMPTY)) == NULL)
-   {
-      printf ("scsLogInit - unable to create logNow sem\n");
-      return (ERROR);
-   }
+   doPvLoad = epicsEventMustCreate(epicsEventEmpty);
+   pvLoadComplete = epicsEventMustCreate(epicsEventEmpty);
 
    /* get address of logging CAR record */
 
@@ -166,140 +141,77 @@ int scsInit (void)
 
    if (dbNameToAddr (pRecordName, &logCAddr) != 0)
    {
-      printf ("scsLogInit - unable to fetch address of logC CAR\n");
+      errlogPrintf("scsLogInit - unable to fetch address of logC CAR\n");
       return (ERROR);
    }
 
    /* mutex semaphore to prevent multiple access to guide data */
-
    for (source = PWFS1; source <= GYRO; source++)
    {
-      wfsFree[source] = epicsMutexMustCreate(SEM_Q_PRIORITY | SEM_DELETE_SAFE | SEM_INVERSION_SAFE);
+      wfsFree[source] = epicsMutexMustCreate();
    }
 
    /* create dummy filters for each of the guide sources */
-
    for (source = PWFS1; source <= GYRO; source++)
    {
       createFilter (source, OFF, 200.0, 20.0, 20.0, -2.0, -2.0, -2.0);
    }
 
    /* create mutex semaphore to protect the set point values */
+   setPointFree = epicsMutexCreate();
 
-   if ((setPointFree = semMCreate (SEM_Q_PRIORITY | SEM_DELETE_SAFE | SEM_INVERSION_SAFE)) == NULL)
-   {
-      printf ("unable to create setPointFree sem\n");
-      return (ERROR);
-   }
+   /* the vxWorks code had stacksize for all threads set to 20000, but epicsThreadStackBig is only 11000.
+    * are such large stack sizes really needed? */
 
    /* spawn task to pvload initialisation data */
-
-   if (taskSpawn ("tloadInit", 150, VX_FP_TASK, 20000, (FUNCPTR) loadInitFiles, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0) == ERROR)
-   {
-      logMsg ("unable to spawn load init files task\n", 0, 0, 0, 0, 0, 0);
-      return (ERROR);
-   }
-
-   /* spawn logging task */
-
-   if (taskSpawn ("loggerTask", 44, VX_FP_TASK, 20000, (FUNCPTR) loggerTask, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0) == ERROR)
-   {
-      printf ("unable to spawn loggerTask\n");
-      return (ERROR);
-   }
+   epicsThreadMustCreate("tloadInit", epicsThreadPriorityMedium, 
+                     epicsThreadGetStackSize(epicsThreadStackBig),
+                     (EPICSTHREADFUNC)loadInitFiles, (void *)NULL);
 
    /* spawn control loop task */
-
-   if (taskSpawn ("tslowTx", 100, VX_FP_TASK, 30000, (FUNCPTR) slowTransmit, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0) == ERROR)
-   {
-      logMsg ("unable to spawn slowTransmit task\n", 0, 0, 0, 0, 0, 0);
-      return (ERROR);
-   }
+   epicsThreadMustCreate("tslowTx",epicsThreadPriorityMedium,
+                    epicsThreadGetStackSize(epicsThreadStackBig),
+                    (EPICSTHREADFUNC)slowTransmit, (void *)NULL);
 
    /* Do in startup in order that xycom has already been initted.
     * Then, if TIME_LATENCY needed, everything w.r.t. port addresses will
     * have been defined */
-   if (taskSpawn ("tprocGuides", 7, VX_FP_TASK, 20000, (FUNCPTR) processGuides, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0) == ERROR)
-   {
-      logMsg ("unable to spawn processGuides task\n", 0, 0, 0, 0, 0, 0);
-      return (ERROR);
-   }
 
+   epicsThreadMustCreate("tprocGuides", epicsThreadPriorityHigh,
+                    epicsThreadGetStackSize(epicsThreadStackBig),
+                    (EPICSTHREADFUNC)processGuides, (void *)NULL);
+
+#if 0
+/* convert this to a thread that runs periodically */
    /* set up aux clock to and connect ISR */
-
    sysAuxClkRateSet (SYSTEM_CLOCK_RATE);
    sysAuxClkConnect ((FUNCPTR) fireLoops, 0);
    sysAuxClkEnable ();
-
-   /*
-    * call with parameter zero for no simulation, any other value for full
-    * simulation
-    */
-
-   if ((refMemFree = semMCreate (SEM_Q_PRIORITY | SEM_DELETE_SAFE | SEM_INVERSION_SAFE)) == NULL)
-   {
-      printf ("unable to create refMemFree\n");
-      return (ERROR);
-   }
-
-   if ((eventDataSem = semMCreate (SEM_Q_PRIORITY | SEM_DELETE_SAFE | SEM_INVERSION_SAFE)) == NULL)
-   {
-      printf ("unable to create eventDataSem\n");
-      return (ERROR);
-   }
-
-   if ((m2MemFree = semMCreate (SEM_Q_PRIORITY | SEM_DELETE_SAFE | SEM_INVERSION_SAFE)) == NULL)
-   {
-      printf ("unable to create m2MemFree\n");
-      return (ERROR);
-   }
-
-   if ((scsDataAvailable = semBCreate (SEM_Q_PRIORITY, SEM_EMPTY)) == NULL)
-   {
-      printf ("unable to create scsDataAvailable\n");
-      return (ERROR);
-   }
-
-   if ((slowUpdate = semBCreate (SEM_Q_PRIORITY, SEM_EMPTY)) == NULL)
-   {
-      printf ("unable to create slowUpdate\n");
-      return (ERROR);
-   }
-
-   if ((scsReceiveNow = semBCreate (SEM_Q_PRIORITY, SEM_EMPTY)) == NULL)
-   {
-      printf ("unable to create scsReceiveNow\n");
-      return (ERROR);
-   }
-
-   if ((guideUpdateNow = semBCreate (SEM_Q_PRIORITY, SEM_EMPTY)) == NULL)
-   {
-      printf ("unable to create guideUpdateNow\n");
-      return (ERROR);
-   }
+#endif
+   
+   epicsThreadMustCreate("tfireLoops", epicsThreadPriorityHigh,
+                   epicsThreadGetStackSize(epicsThreadStackSmall),
+                   (EPICSTHREADFUNC)fireLoops, (void *)NULL);
 
 
-/* This semaphore doesn't seem to be used anywhere  -- get rid of it. 20171019 MDW */
-//   if ((compileStatus = semBCreate (SEM_Q_PRIORITY, SEM_EMPTY)) == NULL)
-//   {
-//      printf ("unable to create compileStatus\n");
-//      return (ERROR);
-//   }
+   refMemFree = epicsMutexMustCreate();
+   eventDataSem = epicsMutexMustCreate();
+   m2MemFree = epicsMutexMustCreate();
 
-   if ((statusCompiled = semBCreate (SEM_Q_PRIORITY, SEM_EMPTY)) == NULL)
-   {
-      printf ("unable to create statusCompiled\n");
-      return (ERROR);
-   }
+   scsDataAvailable = epicsEventMustCreate(epicsEventEmpty);
+   slowUpdate = epicsEventMustCreate(epicsEventEmpty);
+   scsReceiveNow = epicsEventMustCreate(epicsEventEmpty);
+   guideUpdateNow = epicsEventMustCreate(epicsEventEmpty);
+   diagnosticsAvailable = epicsEventMustCreate(epicsEventEmpty);
 
-   if ((diagnosticsAvailable = semBCreate (SEM_Q_PRIORITY, SEM_EMPTY)) == NULL)
-   {
-      printf ("unable to create diagnosticsAvailable\n");
-      return (ERROR);
-   }
+
+
+/* These semaphores don't seem to be used anywhere  -- get rid of them. 20171019 MDW */
+   // compileStatus = epicsEventMustCreate(epicsEventEmpty);
+   // statusCompiled = epicsEventMustCreate(epicsEventEmpty);
+
 
    /* M2 simulation pointer always points to the buffer area */
-
    if ((m2Ptr = (memMap *) malloc (sizeof (memMap))) == NULL)
    {
       printf ("malloc fail on creation of m2Ptr buffer\n");
@@ -312,96 +224,80 @@ int scsInit (void)
       return (ERROR);
    }
 
-   /* if no reflective memory card is present, create an equivalent buffer */
 
-   if (vxMemProbe((void *)TRUESCSBASE, READ, sizeof(char), &test) == OK)
-   {
-      printf("Reflective memory card detected\n");
-      scsBase = (memMap *) TRUESCSBASE;
+   /* if no reflective memory card is present, create an equivalent buffer */
+   if(rmStatus(0) != S_dev_NoInit) {
+      scsBase = (memMap *) rmPageMemBase();
+      printf("Reflective memory available\n");
    }
    else
    {
-      printf("Reflective memory card not detected\n");
+      printf("Reflective memory card not available\n");
 
       if ((scsBase = (memMap *) malloc (sizeof (memMap))) == NULL)    
       {
-         printf ("malloc fail on creation of scsBase buffer\n");
+         errlogMessage("malloc fail on creation of scsBase buffer\n");
          return (ERROR);
       }
    }
 
-   printf ("initRefMem, scsPtr = %x, scsBase = %x\n", (unsigned int) scsPtr, (unsigned int) scsBase); 
+
+   printf ("initRefMem, scsPtr = 0x%p, scsBase = 0x%p\n",  scsPtr, scsBase); 
 
    /* create command message queue */
 
-   if ((commandQId = msgQCreate (100, sizeof (long), MSG_Q_FIFO)) == NULL)
+   if ((commandQId = epicsMessageQueueCreate(100, sizeof (long))) == NULL)
    {
-      errorLog ("initRefMem - error in creation of command message queue", 1, ON);
+      errorLog ("initRefMem(): error in creation of commandQId message queue", 1, ON);
    }
    else
    {
-      printf ("message queue created successfully\n");
+      printf ("iinitRefMem(): commandQId message queue created successfully\n");
    }
 
    /* create command receiving queue for the simulation */
 
-   if ((receiveQId = msgQCreate (100, sizeof (long), MSG_Q_FIFO)) == NULL)
+   if ((receiveQId = epicsMessageQueueCreate(100, sizeof (long))) == NULL)
    {
-      errorLog ("initRefMem - error in creation of receive message queue", 1, ON);
+      errorLog ("initRefMem():  error in creation of receiveQId message queue", 1, ON);
    }
    else
    {
-      printf ("receive message queue created successfully\n");
+      printf ("initRefMem(): receiveQId message queue created successfully\n");
    }
 
    /* create health message queue */
 
-   if ((healthQId = msgQCreate (100, sizeof (healthReport), MSG_Q_FIFO)) == NULL)
+   if ((healthQId = epicsMessageQueueCreate(100, sizeof (healthReport))) == NULL)
    {
-      errorLog ("error in creation of health message queue", 1, ON);
+      errorLog ("initRefMem(): error in creation of healthiQId  message queue", 1, ON);
    }
    else
    {
-      printf ("health message queue created successfully\n");
+      printf ("initRefMem(): healthiQId  message queue created successfully\n");
    }
 
    /* clear buffers */
 
-   if (semTake (refMemFree, SEM_TIMEOUT) == OK)
-   {
-      memset ((void *) scsPtr, 0, sizeof (memMap));
-      semGive (refMemFree);
-   }
-   else
-   {
-      errorLog ("initRefMem - refMemFree timeout", 1, ON);
-   }
+   epicsMutexLock(refMemFree);
+   memset ((void *) scsPtr, 0, sizeof (memMap));
+   epicsMutexUnlock(refMemFree);
 
-   if (semTake (m2MemFree, SEM_TIMEOUT) == OK)
-   {
-      memset ((void *) m2Ptr, 0, sizeof (memMap));
-      semGive (m2MemFree);
-   }
-   else
-   {
-      errorLog ("initRefMem - m2MemFree timeout", 1, ON);
-   }
+   epicsMutexLock(m2MemFree);
+   memset ((void *) m2Ptr, 0, sizeof (memMap));
+   epicsMutexUnlock(m2MemFree);
 
    memset ((void *) scsBase, 0, sizeof (memMap));
 
-   /* spawn communication tasks */
+   /* spawn communication tasks */  
+   /* these had been medium priority for GS */
+   epicsThreadMustCreate("tscsRx", epicsThreadPriorityHigh,
+                  epicsThreadGetStackSize(epicsThreadStackBig),
+                  (EPICSTHREADFUNC)scsReceive, (void *)NULL);
 
-   if (taskSpawn ("tscsRx", 7, VX_FP_TASK, 20000, (FUNCPTR) scsReceive, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0) == ERROR)
-   {
-      printf ("taskSpawn fail - scsReceive\n");
-      return (ERROR);
-   }
-
-   if ((taskSpawn ("ttiltRx", 8, VX_FP_TASK, 20000, (FUNCPTR) tiltReceive, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)) == ERROR)
-   {
-      printf ("taskSpawn fail - tiltReceive\n");
-      return (ERROR);
-   }
+   epicsThreadMustCreate("ttiltRx", epicsThreadPriorityHigh,
+                  epicsThreadGetStackSize(epicsThreadStackBig),
+                  (EPICSTHREADFUNC)tiltReceive, (void *)NULL);
 
 /*
    if ((taskSpawn ("cemTimerS", 101, VX_FP_TASK, 20000, (FUNCPTR) cemTimerStart, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)) == ERROR)

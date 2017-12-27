@@ -27,17 +27,16 @@
  * -------
  * 17-Nov-1999: Created new header files.
  * 16-Dec-1999: Added global variables
- * 19-OCT-2017: gon conversion to EPICS OSI (mdw)
- *
+ * 19-OCT-2017: Begin conversion to EPICS OSI (mdw)
+ * 14-Dec-2017: Changed VSTART to VIBSTART because of <sys/termios.h> conflict (mdw)
  */
 /* ===================================================================== */
 #ifndef _INCLUDED_CONTROL_H
 #define _INCLUDED_CONTROL_H
 
 #include "chopControl.h"        /* For BEAMA definition */
-#include "elgLib.h"
 #include "guide.h"
-#include "utilities.h"          /* For MAX_SOURCES */
+//#include "utilities.h"          /* For MAX_SOURCES */
 
 #define AUTOGUIDE 0
 #define PROJECT   1
@@ -49,6 +48,12 @@
 
 #define AGOI_NODE               4       /* Node 4 is the A&G OIWFS */   
 #define GAOS_NODE               5       /* Node 5 is the ALTAIR    */   
+
+#ifndef MK
+#define F2OI_NODE               8       /* Node 8 is the F2 OIWFS */   
+#define GPI_NODE                9       /* Node 9 is the GPI OIWFS */  
+#endif
+
 
 #define SYSTEM_CLOCK_RATE      200      /* Number of ticks per second */ 
 
@@ -400,7 +405,12 @@ typedef struct
     wfsBlock        oiwfs;      /* page10 */
     wfsBlock        gaos;       /* page11 */
     wfsBlock        gyro;       /* page12 */
-    wfsBlock        altair;       /* page13 */
+    wfsBlock        altair;     /* page13 */
+#ifndef MK
+    unusedBlock     page14;
+    wfsBlock        gpi;        /* page15 */
+#endif
+
 }memMap;
 
 typedef struct                  /* data from m2 to log */
@@ -414,6 +424,8 @@ typedef struct                  /* data from m2 to log */
     double  setZ;
 } m2History;
 
+
+#ifdef MK
 #define HS_RECORD_LENGTH 4000
 
 typedef struct {
@@ -434,6 +446,7 @@ typedef struct {
     double vtkYPhase[HS_RECORD_LENGTH]; /*Set FTV<output> to numsamples*/
 
 } HighSpeed;
+#endif
 
 enum
 {
@@ -442,16 +455,11 @@ enum
     INT3
 };
 
-void fireLoops(int param);
-
+void  fireLoops(void *);
 void processGuides(void);
-
 void slowTransmit(void);
-
 void tiltReceive(void);
-
 void scsReceive(void);
-
 int checkTiltStatus(void);
 
 void cemTimerStart();
@@ -480,7 +488,7 @@ enum
     CMD_TEST,            /* 10 */
     MSTART,              /* 11 */
     MEND,                /* 12 */
-    VSTART,              /* 13 */
+    VIBSTART,            /* 13 */  
     VEND,                /* 14 */
     MOFFLON,             /* 15 */
     MOFFLOFF,            /* 16 */
@@ -553,7 +561,11 @@ extern int currentBeam;
 extern int flip;
 extern int guideType;
 extern PID controller[MAX_AXES];
+
+#ifdef MK
 extern HighSpeed *highSpeedData;
+#endif
+
 /* not used extern wfs raw[MAX_SOURCES];*/
 extern wfs filtered[MAX_SOURCES];
 /* Structure to hold position demands */
@@ -568,6 +580,8 @@ extern long followOn;
 /* flag to show tilt, focus PIDs active { ON | OFF } */
 extern long tiltPidOn;
 extern long focusPidOn;
+
+#ifdef MK
 extern long vibrationXTrackOn;
 extern long vibrationYTrackOn;
 extern long phasorXApply;
@@ -583,8 +597,8 @@ void swxon(void);
 void swyon(void);
 void swxoff(void);
 void swyoff(void);
+#endif
 
-extern long servoInPosition;
 extern long servoOnStatus;
 
 extern double SampleData[5][3];

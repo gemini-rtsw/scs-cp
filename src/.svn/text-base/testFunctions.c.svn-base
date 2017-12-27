@@ -64,18 +64,16 @@
 #include "testFunctions.h"
 #include "utilities.h"      /* For tcs2m2, errorLog, etc. */
 
-#include <sysLib.h>         /* For sysClkRateGet */
-#include <taskLib.h>	    /* For taskDelay */
-#include <timeLib.h>
 #include <vmi5588.h> 
+#include <timeLib.h>
 
-/* for vectorShow */
-#include <vxWorks.h>
-#include <intLib.h>
 #include <stdio.h>
 #include <string.h>
-#include <iv.h>
-#include <math.h>   /* Used for rand*/
+#include <math.h>           /* for trig functions */
+#include <stdlib.h>         /* Used for rand */
+#include <tcslib.h>         /* for tcsDcString */
+
+
 
 /* define externals */
 
@@ -94,7 +92,7 @@ int freeRunGuideSim = 0;  /* When true, this calls rmISR3(3) to pretend to be P2
 double xTiltGuideSimScale = 0.0;
 double yTiltGuideSimScale = 0.0;
 
-int guideSimTaskId = 0;  /* The taskId of the guideSimulation task */
+epicsThreadId guideSimTaskId = 0;  /* The taskId of the guideSimulation task */
 
 /* RANDnorm returns a bounded random variable between (-1.0 and 1.0-max_z) */
 double RANDnorm () {
@@ -103,11 +101,13 @@ double RANDnorm () {
    return result;
 }
 
+#ifdef MK
 double vibfreq = 12.0;
 double vibamp = 1.0;
 double vibphase = 0.0;
 double guideSrate = 100.0;
-int guideSimDelayTicks = 1; /* Delay (ms) = guideSimDelayTicks / (sysClkRateGet()==usually 200) */
+//int guideSimDelayTicks = 1; /* Delay (ms) = guideSimDelayTicks / (sysClkRateGet()==usually 200) */
+double guideSimDelay = 0.001; /* Delay (ms) */
 
 void zeroMat(double mat[][1]) {
     int r,c;
@@ -341,6 +341,8 @@ double sinus(int n) {
     double t = (double)n/guideSrate; 
     return vibamp * cos(2*PI * vibfreq * t  ) ;
 }
+#endif
+
 
 /*bitFieldM2 statusWord;*/
 /*
@@ -447,13 +449,13 @@ void    tiltState (const memMap *buffPtr)
 void    big (void)
 {
     printf ("sizes of types on this machine (bytes)\n\n");
-    printf ("char          %ld\n", sizeof (char));
-    printf ("int           %ld\n", sizeof (int));
-    printf ("long          %ld\n", sizeof (long));
-    printf ("float         %ld\n", sizeof (float));
-    printf ("double        %ld\n", sizeof (double));
-    printf ("unsigned int  %ld\n", sizeof (unsigned int));
-    printf ("short int     %ld\n", sizeof (short int));
+    printf ("char          %d\n", sizeof (char));
+    printf ("int           %d\n", sizeof (int));
+    printf ("long          %d\n", sizeof (long));
+    printf ("float         %d\n", sizeof (float));
+    printf ("double        %d\n", sizeof (double));
+    printf ("unsigned int  %d\n", sizeof (unsigned int));
+    printf ("short int     %d\n", sizeof (short int));
 
     printf ("m2 status word at %lx\n", (long) &scsPtr->page1.statusWord.all);
 }
@@ -506,9 +508,14 @@ void    testMem (const memMap * buffPtr)
     printPage12 (buffPtr);
     printPage13a (buffPtr);
     printPage13b (buffPtr);
+
+#ifndef MK
+    printPage15  (buffPtr);
+#endif
+
 }
 
-/* ===================================================================== */
+/*i ===================================================================== */
 
 void    printPage0 (const memMap * buffPtr)
 {
@@ -630,9 +637,9 @@ void    printPage2 (const memMap * buffPtr)
 
     for (i=0; i<MAX_FAULTS; i++)   /* get ride of magic number 30 */
     {
-        pfaults  = &(buffPtr->testResults.faults[i]); 
-        printf ("fault[%2d]      Addr = %lx, Index = %u, Subsys = %u, Code = %u\n", 
-                i, (long)pfaults, (unsigned)pfaults->index, 
+        pfaults  = (fault *)&(buffPtr->testResults.faults[i]); 
+        printf ("fault[%2d]      Addr = %p, Index = %u, Subsys = %u, Code = %u\n", 
+                i, pfaults, (unsigned)pfaults->index, 
                 (unsigned)pfaults->subsystem, (unsigned)pfaults->code);
     } 
 }
@@ -851,6 +858,26 @@ void    printPage13b (const memMap * buffPtr)
 
 }
 
+
+#ifndef MK
+/* ===================================================================== */
+
+void    printPage15 (const memMap * buffPtr)
+{
+    printf ("\nPage 15 - GPI oiwfs data\n");
+    printf ("oiwfs      Addr = %lx,           \n", (long) &buffPtr->gpi.z1);
+    printf ("z1     Addr = %lx, Value = %f\n", (long) &buffPtr->gpi.z1, buffPtr->gpi.z1);
+    printf ("z2     Addr = %lx, Value = %f\n", (long) &buffPtr->gpi.z2, buffPtr->gpi.z2);
+    printf ("z3     Addr = %lx, Value = %f\n", (long) &buffPtr->gpi.z3, buffPtr->gpi.z3);
+    printf ("err1       Addr = %lx, Value = %f\n", (long) &buffPtr->gpi.err1, buffPtr->gpi.err1);
+    printf ("err2       Addr = %lx, Value = %f\n", (long) &buffPtr->gpi.err2, buffPtr->gpi.err2);
+    printf ("err3       Addr = %lx, Value = %f\n", (long) &buffPtr->gpi.err3, buffPtr->gpi.err3);
+    printf ("name       Addr = %lx, Value = %s\n", (long) buffPtr->gpi.name, buffPtr->gpi.name);
+    printf ("interval   Addr = %lx, Value = %f\n", (long) &buffPtr->gpi.interval, buffPtr->gpi.interval);
+    printf ("time       Addr = %lx, Value = %f\n", (long) &buffPtr->gpi.time, buffPtr->gpi.time);
+}
+#endif
+
 /* ===================================================================== */
 /* INDENT OFF */
 /*
@@ -1054,11 +1081,17 @@ void showMaster(void)
 
 int printval = 0;
 
-void fillWfs(double value)
+void fillWfs(void *p)
 {
+   double value = 0.0; 
+
+#ifndef MK
+   double smallRand;
+#endif
 
    for (;;) {
 
+#ifdef MK
 /*
       scsBase->pwfs2.z1 = xTiltGuideSimScale * phasor.command;
       scsBase->pwfs2.z2 = yTiltGuideSimScale * phasor.command;
@@ -1068,6 +1101,19 @@ void fillWfs(double value)
       scsBase->pwfs2.err3 = phasor.command * 0.2;
 */
       scsBase->pwfs2.z3 = 0.0;
+#else
+      smallRand = RANDnorm();
+
+      scsBase->pwfs2.z1 = xTiltGuideSimScale * (smallRand + 0.1);
+      scsBase->pwfs2.z2 = yTiltGuideSimScale * (smallRand + 0.1);
+      scsBase->pwfs2.z3 = 0.0;
+      scsBase->pwfs2.err1 = smallRand * 0.2;
+      scsBase->pwfs2.err2 = smallRand * 0.2;
+      scsBase->pwfs2.err3 = smallRand * 0.2;
+      scsBase->pwfs2.time = value++;
+      scsBase->pwfs2.interval += (float)(gInterval);
+#endif
+
       scsBase->pwfs2.time = value++;
       scsBase->pwfs2.interval += (float)(gInterval);
 
@@ -1077,6 +1123,7 @@ void fillWfs(double value)
       if (freeRunGuideSim)
          rmISR3(3);
          
+#ifdef MK
       /* guideSimDelayTicks could be set to match the intended 100Hz 
        * sample frequency seen by M2TS (CEM). This normally depends
        * on the incomming WFS interrupt rate, then cut in half
@@ -1087,10 +1134,13 @@ void fillWfs(double value)
        *    guideSimDelayTicks = 1; ==> 5ms delay
        *    guideSimDelayTicks = 2; ==> 10ms delay
        * */
-      taskDelay(guideSimDelayTicks);
+      epicsThreadSleep(guideSimDelay);
+#else
+      epicsThreadSleep(0.001);  /* wait only one clock tick */
+#endif
    }
 
-   taskDelete(guideSimTaskId);
+   /* thread is deletped when it terminates */
 }
 
 void startGuideSim(void) {
@@ -1098,11 +1148,13 @@ void startGuideSim(void) {
    stopGuideSim = 0;
    guideSimOn = 1;
 
-   guideSimTaskId = taskSpawn ("testWfs", 7, VX_FP_TASK, 20000, (FUNCPTR) fillWfs, 0.0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+   guideSimTaskId = epicsThreadCreate("testWfs", epicsThreadPriorityHigh, 
+                           epicsThreadGetStackSize(epicsThreadStackBig),
+                           (EPICSTHREADFUNC)fillWfs, (void *)NULL);
    
-   if ( guideSimTaskId == ERROR)
+   if (guideSimTaskId == NULL)
    {
-      printf("Unable to spawn guideSimTask task. guideSimOn set to 0.\n");
+      errlogMessage("Unable to spawn guideSimTask task. guideSimOn set to 0.\n");
       guideSimOn = 0;
    }
    else {
@@ -1420,7 +1472,7 @@ void driveP1(void)
         z += 0.0001;
 
 	/*delay 2 seconds */
-	taskDelay(sysClkRateGet()*2);
+	epicsThreadSleep(2.0);
     }
 }
 
@@ -1449,7 +1501,7 @@ void driveP2(void)
         z += 0.0001;
 
 	/*delay 2 seconds */
-	taskDelay(sysClkRateGet()*2);
+	epicsThreadSleep(2.0);
     }
 }
 

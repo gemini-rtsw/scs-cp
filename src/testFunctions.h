@@ -77,6 +77,10 @@ void printPage12(const memMap* buffPtr);
 void printPage13a(const memMap* buffPtr);
 void printPage13b(const memMap* buffPtr);
 
+#ifndef MK
+void printPage15(const memMap* buffPtr);
+#endif
+
 long initSelector(struct genSubRecord* pgsub);
 
 void testFrame(double xTilt, double yTilt, double zFocus, 
@@ -94,7 +98,7 @@ void driveP1(void);
 
 void driveP2(void);
 
-void fillWfs(double value);
+void fillWfs(void *);
 
 void startGuideSim();
 

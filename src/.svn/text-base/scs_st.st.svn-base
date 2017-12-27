@@ -90,6 +90,9 @@
    *      CADchopConfig START case, instead
    * 06-Jul-2000: Remove state set for baffles. Do steps in CADmoveBaffle
    *      instead.
+   * 12-Dec-2017: Convert vxWorks calls to EPICS OSI calls (mdw)
+   * 14-Dec-2017: Changed all instances of VSTART to VIBSTART 
+   *              because of conflict with  <sys/termios.h> (mdw)
    *
    */
    /* INDENT ON */
@@ -115,9 +118,9 @@
    %%#include "interp.h"       /* For AX, AY, ..., Z axis identifiers */
    %%#include "scs.h"          /* For resetFirstFollowDemand */
    %%#include "utilities.h"    /* For checksum, tcs2m2, doPvLoad, pvLoadComplete */
-   %%#include "xycom.h"        /* For eventConfig */
+   %%#include "eventBus.h"     /* For eventConfig */
    %%#include "testFunctions.h"        /* For startGuideSim, endGuideSim */
-   %%#include "interlock.h"        /* For startGuideSim, endGuideSim */
+   %%#include "interlock.h"    /* For startGuideSim, endGuideSim */
 
 
    %%#include <stdlib.h>
@@ -125,10 +128,6 @@
    %%#include <math.h>
 
    %%#include <car.h>
-
-   %%#include <logLib.h>
-   %%#include <rebootLib.h>
-   %%#include <sysLib.h>
 
    %%#define CMD_RESPONSE_TIMEOUT    40.0 /* command acknowledgement timeout in 
                                              units equal to ~0.33 seconds */
@@ -171,14 +170,14 @@
       /* define park position for the m2 mechanism */
       /* Goofy that these are here. They should be moved to SCSInit.dat */
 
-      static double   xTiltPark   =   0.0;
-      static double   yTiltPark   =   0.0;
-      static double   zFocusPark  =   0.0;
-      static double   xPosPark    =   2125.0;
-      static double   yPosPark    =   1500.0;
+      // static double   xTiltPark   =   0.0;
+      // static double   yTiltPark   =   0.0;
+      // static double   zFocusPark  =   0.0;
+      // static double   xPosPark    =   2125.0;
+      // static double   yPosPark    =   1500.0;
 
       static location parkPosition;
-      static location xyInitPosition;
+      // static location xyInitPosition;
 
       static double   xTiltAdef;
       static double   yTiltAdef;
@@ -320,9 +319,9 @@ long chopResponse;
 assign chopResponse to "{T}byte0:b7.VAL";
 monitor chopResponse;
 
-long servoOnStatus;
-assign servoOnStatus to "{T}byte3:b6.VAL";
-monitor servoOnStatus;
+long servoOnStat;
+assign servoOnStat to "{T}byte3:b6.VAL";
+monitor servoOnStat;
 
 long XYmovingStatus;
 assign XYmovingStatus to "{T}byte1:b4.VAL";
@@ -567,6 +566,7 @@ assign moveYInputPos to "{T}move.H";
 long pidDir;
 assign pidDir to "{T}setController.DIR";
 
+#ifdef MK
 /* VTK control record connections*/
 
 long vtkXCtrl;
@@ -613,6 +613,7 @@ assign phasorXDir to "{T}X:setPhasorControl.DIR";
 
 long phasorYDir;
 assign phasorYDir to "{T}Y:setPhasorControl.DIR";
+#endif
 
 /* ===================================================================== */
 
@@ -750,16 +751,16 @@ monitor guideSimStart;
 evflag guideSimChange;
 sync guideSimStart to guideSimChange;
 
-long tiltPidOn;
-assign tiltPidOn to "{T}tiltpidon.VAL";
-monitor tiltPidOn;
+long tiltPidOnSim;
+assign tiltPidOnSim to "{T}tiltpidon.VAL";
+monitor tiltPidOnSim;
 
 long tiltpidDir;
 assign tiltpidDir to "{T}tiltpidControl.DIR";
 
-long focusPidOn;
-assign focusPidOn to "{T}focuspidon.VAL";
-monitor focusPidOn;
+long focusPidOnSim;
+assign focusPidOnSim to "{T}focuspidon.VAL";
+monitor focusPidOnSim;
 
 long focuspidDir;
 assign focuspidDir to "{T}focuspidControl.DIR";
@@ -958,61 +959,61 @@ double tempSad;
 assign tempSad to "{D}temperature.VAL";
 
 /* NOT USED ANYWHERE IN THE SNL 
-   double xTiltPosSad;                     /* x tilt position 
+   double xTiltPosSad;                     // x tilt position 
    assign xTiltPosSad to "{D}xTiltPos.VAL";
 
-   double yTiltPosSad;                     /* y tilt position 
+   double yTiltPosSad;                     // y tilt position 
    assign yTiltPosSad to "{D}yTiltPos.VAL";
 
-   double zFocusPosSad;                    /* z focus position 
+   double zFocusPosSad;                    // z focus position 
    assign zFocusPosSad to "{D}zPos.VAL";
 
-   double xTiltDemandSad;                  /* demanded x tilt position 
+   double xTiltDemandSad;                  // demanded x tilt position 
    assign xTiltDemandSad to "{D}xNetTiltDmd.VAL";
 
-   double yTiltDemandSad;                  /* demanded y tilt position 
+   double yTiltDemandSad;                  // demanded y tilt position 
    assign yTiltDemandSad to "{D}yNetTiltDmd.VAL";
 
-   double zFocusDemandSad;                 /* demanded z focus position 
+   double zFocusDemandSad;                 // demanded z focus position 
    assign zFocusDemandSad to "{D}zNetDmd.VAL";
 
-   double xTiltErrorSad;                   /* x tilt position error 
+   double xTiltErrorSad;                   // x tilt position error 
    assign xTiltErrorSad to "{D}xTiltErr.VAL";
 
-   double yTiltErrorSad;                   /* y tilt position error 
+   double yTiltErrorSad;                   // y tilt position error 
    assign yTiltErrorSad to "{D}yTiltErr.VAL";
 
-   double zFocusErrorSad;                  /* z focus position error 
+   double zFocusErrorSad;                  // z focus position error 
    assign zFocusErrorSad to "{D}zErr.VAL";
 
-   double xPositionSad;                    /* x position 
+   double xPositionSad;                    // x position 
    assign xPositionSad to "{D}xPos.VAL";
 
-   double xDemandSad;                      /* demanded x position 
+   double xDemandSad;                      // demanded x position 
    assign xDemandSad to "{D}xPosDmd.VAL";
 
-   double xErrorSad;                       /* x position error 
+   double xErrorSad;                       // x position error 
    assign xErrorSad to "{D}xPosErr.VAL";
 
-   double yPositionSad;                    /* y position 
+   double yPositionSad;                    // y position 
    assign yPositionSad to "{D}yPos.VAL";
 
-   double yDemandSad;                      /* demanded y position 
+   double yDemandSad;                      // demanded y position 
    assign yDemandSad to "{D}yPosDmd.VAL";
 
-   double yErrorSad;                       /* y position error 
+   double yErrorSad;                       // y position error 
    assign yErrorSad to "{D}yPosErr.VAL";
 
-   double xTiltGuideSad;                   /* net x tilt correction 
+   double xTiltGuideSad;                   // net x tilt correction 
    assign xTiltGuideSad to "{D}xTiltGuide.VAL";
 
-   double yTiltGuideSad;                   /* net y tilt correction 
+   double yTiltGuideSad;                   // net y tilt correction 
    assign yTiltGuideSad to "{D}yTiltGuide.VAL";
 
-   double zFocusGuideSad;                  /* net z focus correction 
+   double zFocusGuideSad;                  // net z focus correction 
    assign zFocusGuideSad to "{D}zGuide.VAL";
 
-   string scsHealth;                       /* current health of the SCS 
+   string scsHealth;                       // current health of the SCS 
    assign scsHealth to "{D}health.VAL";
  */
 /* ===================================================================== */
@@ -1168,7 +1169,7 @@ monitor servoInPosition;
 /* ===================================================================== */
 
 ss CADprocessor {
-   state entry {
+   state init {
       when() {
          /* set current SCS state to IDLE */
 
@@ -1211,7 +1212,9 @@ ss CADprocessor {
          efClear(inPositionChange);
          efClear(followCadChange);
          efClear(actuatorCadChange);
+#ifdef MK
          efClear(vtkChange);
+#endif
 
          puts("Cleared flags, starting INIT in 10.0 secs...");
 
@@ -1326,12 +1329,14 @@ ss CADprocessor {
          efClear(guideSimChange);
       } state startGuideSimChange
 
+#ifdef MK
       when(efTest(vtkChange))
       {
          /* clear event flag */
          efClear(vtkChange);
 
       }   state startVtkChange
+#endif
 
    }
 
@@ -1504,7 +1509,7 @@ ss CADprocessor {
             eventConfig.m2Power = ON;
             eventConfig.m2Servo = ON;
             printf("startInit - giving eventSem semaphore\n");
-            semGive(eventSem); 
+            epicsEventSignal(eventSem); 
             }
             else
             {
@@ -1524,17 +1529,19 @@ ss CADprocessor {
 
          /* give semaphore to allow loading of initialisation files */
 
-         semGive(doPvLoad);
+         epicsEventSignal(doPvLoad);
 
          /* wait on semaphore showing load completed */
 
-         %{
-            if(semTake(pvLoadComplete, WAIT_FOREVER) != OK)
+         {
+            /* originally this had WAIT_FOREVER as a timeout. 
+             * We need something more reasonable -- 5 minutes maybe? (mdw) */
+            if(epicsEventWaitWithTimeout(pvLoadComplete, 300.0) != OK)
             {
                errorLog("timeout waiting for pvLoad completion", 1, ON);
                reportHealth(WARNING, "Timeout loading filter coefficients");
             }
-         }%
+         }
 
          puts("Files now loaded, wait 10.0 seconds...");
       } state loadFiles
@@ -1678,11 +1685,13 @@ ss CADprocessor {
 
 	     pvGet(moveXPosition);
 	 	 pvGet(moveYPosition);
-
-         if (semTake (setPointFree, SEM_TIMEOUT) == OK)
+       %{
+         if (epicsMutexTryLock(setPointFree))
          {
-            logMsg(" moveXposition set to %f \n",moveXPosition, 0, 0, 0, 0, 0);
-            logMsg(" moveYPosition set to %f \n",moveYPosition, 0, 0, 0, 0, 0);
+            if(debugLevel) {
+               errlogPrintf(" moveXposition set to %f \n",moveXPosition);
+               errlogPrintf(" moveYPosition set to %f \n",moveYPosition);
+            }
             setPoint.xTiltA =  0.0;
             setPoint.yTiltA =  0.0;
             setPoint.xTiltB =  0.0;
@@ -1692,18 +1701,24 @@ ss CADprocessor {
             setPoint.zFocus =  0.0;
             setPoint.xPosition =  moveXPosition;
             setPoint.yPosition =  moveYPosition;
-            semGive(setPointFree);
+            epicsMutexUnlock(setPointFree);
          }
-
+         else
+         {
+            errorLog ("state startInit - couldn't obtain setPointFree mutex", 1, ON);
+         } 
+       }%
          pvGet(moveXInputPos);
          pvGet(moveYInputPos);
          pvGet(xyPosDeadband);
 
-         if (semTake (refMemFree, SEM_TIMEOUT) == OK)
+         if (epicsMutexTryLock(refMemFree))
          {
-            logMsg(" moveXInputPos to RM %f \n",moveXInputPos, 0, 0, 0, 0, 0);
-            logMsg(" moveYInputPos to RM %f \n",moveYInputPos, 0, 0, 0, 0, 0);
-            logMsg(" xyPosDeadband to RM %f \n",xyPosDeadband, 0, 0, 0, 0, 0);
+            if(debugLevel) {
+               errlogPrintf(" moveXInputPos to RM %f \n",moveXInputPos);
+               errlogPrintf(" moveYInputPos to RM %f \n",moveYInputPos);
+               errlogPrintf(" xyPosDeadband to RM %f \n",xyPosDeadband);
+            }
             scsBase->page0.AxTilt = 0.0;
             scsBase->page0.BxTilt = 0.0;
             scsBase->page0.CxTilt = 0.0;
@@ -1766,11 +1781,11 @@ ss CADprocessor {
             scsBase->page0.yGrossTiltDmd = 0.0;
             scsBase->page0.xyPositionDeadband = xyPosDeadband;
 
-            semGive (refMemFree);
+            epicsMutexUnlock(refMemFree);
          }
          else
          {
-            errorLog ("startInit - refMemFree timeout", 1, ON);
+            errorLog ("state startInit - couldn't obtain refMemFree mutex", 1, ON);
          } 
 
          controller[FOCUS].sum = 0.0;
@@ -1853,7 +1868,7 @@ ss CADprocessor {
          /*
             writeCommand(ACT_PWR_ON);
             writeCommand(MOFFLON);
-            writeCommand(VSTART);
+            writeCommand(VIBSTART);
             writeCommand(MSTART);
          */
 
@@ -1891,7 +1906,7 @@ ss CADprocessor {
 
          writeCommand(ACT_PWR_ON);
          writeCommand(MOFFLON);
-         writeCommand(VSTART);
+         writeCommand(VIBSTART);
          writeCommand(MSTART);
 
          myscsState = SYSTEMIDLE;
@@ -1989,7 +2004,7 @@ ss CADprocessor {
          pidDir = 3;
          pvPut(pidDir);
 
-        
+#ifdef MK        
         /* send VTK command to setup VTK values*/
         vtkXDir = 2;
         pvPut(vtkXDir);
@@ -2013,6 +2028,7 @@ ss CADprocessor {
         pvPut(phasorYDir);
         phasorYDir = 3;
         pvPut(phasorYDir);
+#endif
 
       }   state idle
    }
@@ -2099,15 +2115,19 @@ ss CADprocessor {
          writeCommand(CMD_XYINIT);
 
          /* clear out reflective mem */
-
-         if (semTake (setPointFree, SEM_TIMEOUT) == OK)
+%{
+         if (epicsMutexTryLock(setPointFree))
          {
             setPoint.xPosition =  0.0;
             setPoint.yPosition =  0.0;
-            semGive(setPointFree);
+            epicsMutexUnlock(setPointFree);
          }
+         else
+         {
+            errorLog ("state startInitXY - couldn't obtain setPointFree mutex", 1, ON);
+         } 
 
-         if (semTake (refMemFree, SEM_TIMEOUT) == OK)
+         if (epicsMutexTryLock(refMemFree))
          {
             scsBase->page0.xDemand = moveXPosition;
             scsBase->page0.yDemand = moveYPosition;
@@ -2126,17 +2146,17 @@ ss CADprocessor {
             scsBase->page0.xysteps = 0;
             scsBase->page0.xyPositionDeadband = xyPosDeadband;
 
-            semGive (refMemFree);
+            epicsMutexUnlock(refMemFree);
          }
          else
          {
-            errorLog ("startInitXY - refMemFree timeout", 1, ON);
+            errorLog ("state startInitXY - couldn't obtain refMemFree mutex", 1, ON);
          } 
 
          /* set health to good until proved otherwise */
 
          reportHealth(GOOD, "");
-
+}%
 
          /* clear message field */
 
@@ -2298,7 +2318,7 @@ ss CADprocessor {
 
    state proceedWithMove
    {
-      when(servoOnStatus == 0) 
+      when(servoOnStat == 0) 
       {
          printf("mirror control disabled - proceed with move\n");
 
@@ -2332,8 +2352,8 @@ ss CADprocessor {
          }
 
          /* copy values to demands structure for access by SNL */
-
-         if(semTake(setPointFree, SEM_TIMEOUT) == OK)
+%{
+         if(epicsMutexTryLock(setPointFree))
          {
             setPoint.xTiltA = moveAXTilt;
             setPoint.yTiltA = moveAYTilt;
@@ -2345,15 +2365,14 @@ ss CADprocessor {
             setPoint.xPosition = moveXPosition;
             setPoint.yPosition = moveYPosition;
 
-            semGive(setPointFree);
+            epicsMutexUnlock(setPointFree);
          }
          else
          {
-            logMsg("startMove - setPointFree timeout\n", 
-                  0, 0, 0, 0, 0, 0);
+            errorLog("state startMove - couldn't obtain setPointFree mutex", 1, ON);
          }
          servoInPosition = 0; 
-
+}%
       }   state moveWaitForCoincidence
 
       when(delay(SERVO_OFF_TIMEOUT))
@@ -2394,7 +2413,7 @@ ss CADprocessor {
 
          printf("in close range - turning on mirror control \n");
 
-         writeCommand(VSTART);
+         writeCommand(VIBSTART);
          writeCommand(MSTART); 
 
          /* send idle indication to the moveC record */
@@ -2476,7 +2495,7 @@ ss CADprocessor {
 
    state proceedWithActMove
    {
-      when(servoOnStatus == 0)
+      when(servoOnStat == 0)
       {
          printf("mirror control disabled - proceed with move\n");
 
@@ -2492,19 +2511,20 @@ ss CADprocessor {
          pvGet(actXTilt);
          pvGet(actYTilt);
          pvGet(actZFocus);
-
-         if(semTake(setPointFree, SEM_TIMEOUT) == OK)
+%{
+         if(epicsMutexTryLock(setPointFree))
          {
             setPoint.xTiltA = actXTilt;
             setPoint.yTiltA = actYTilt;
             setPoint.zFocus = actZFocus;
 
-            semGive(setPointFree);
+            epicsMutexUnlock(setPointFree);
          }
          else
          {
-            logMsg("startActuator - setPointFree timeout\n", 0, 0, 0, 0, 0, 0);
+            errorLog("state startActuator - couldn't obtain setPointFree mutex", 1, ON);
          }
+}%
 
       }   state actuatorWaitForCoincidence
 
@@ -2547,7 +2567,7 @@ ss CADprocessor {
 
          printf("in close range - turning on mirror control\n");
 
-         writeCommand(VSTART);
+         writeCommand(VIBSTART);
          writeCommand(MSTART);
 
          /* send idle indication to the moveC record */
@@ -2632,7 +2652,7 @@ ss CADprocessor {
 
    state proceedWithFollow
    {
-      when(servoOnStatus == 0)
+      when(servoOnStat == 0)
       {
          printf("mirror control disabled - proceed with move\n");
 
@@ -2699,7 +2719,7 @@ ss CADprocessor {
 
          printf("in close range - turning on mirror control\n");
 
-         writeCommand(VSTART);
+         writeCommand(VIBSTART);
          writeCommand(MSTART);
 
          /* send idle indication to the followC record */
@@ -2728,7 +2748,7 @@ ss CADprocessor {
 
          printf("in close range - turning on mirror control\n");
 
-         writeCommand(VSTART);
+         writeCommand(VIBSTART);
          writeCommand(MSTART);
 
          /* send idle indication to the followC record */
@@ -2889,6 +2909,7 @@ ss CADprocessor {
          writeCommand(VEND);
          writeCommand(MOFFLON);
 
+#ifdef MK
         /* Turn VTK OFF*/
         vtkXCtrl = 0;
         vtkYCtrl = 0;
@@ -2904,6 +2925,7 @@ ss CADprocessor {
         pvPut(vtkYCtrlDir);
         vtkYCtrlDir = 3;
         pvPut(vtkYCtrlDir);
+#endif
 
 
       } state proceedWithPark
@@ -2911,7 +2933,7 @@ ss CADprocessor {
 
    state proceedWithPark
    {
-      when(servoOnStatus == 0)
+      when(servoOnStat == 0)
       {
          printf("mirror control disable - proceed with move\n");
 
@@ -2935,8 +2957,8 @@ ss CADprocessor {
          printf(" xPos %f \n",xPosDef);
          printf(" yPos %f \n",yPosDef);
 
-
-         if(semTake(setPointFree, SEM_TIMEOUT) == OK)
+%{
+         if(epicsMutexTryLock(setPointFree))
          {
             setPoint.xTiltA = parkPosition.xTilt;
             setPoint.yTiltA = parkPosition.yTilt;
@@ -2948,13 +2970,13 @@ ss CADprocessor {
             setPoint.xPosition = parkPosition.xPos;
             setPoint.yPosition = parkPosition.yPos;
 
-            semGive(setPointFree);
+            epicsMutexUnlock(setPointFree);
          }
          else
          {
-            logMsg("proceedWithPark - setPointFree timeout\n", 0, 0, 0, 0, 0, 0);
+            errorLog("state proceedWithPark - couldn't obtain setPointFree mutex", 1, ON);
          }
-
+}%
       }   state parkWaitForCoincidence
 
       when(delay(SERVO_OFF_TIMEOUT))
@@ -3089,9 +3111,9 @@ ss CADprocessor {
                   errorLog("startChopControl - chop mode change not acknowledged by event system", 1, ON);
                }
                writeCommand(CHOP_OFF); 
-               semGive(eventSem); 
+               epicsEventSignal(eventSem); 
             }
-            return;
+            // return;
          }
          else
          { 
@@ -3255,8 +3277,7 @@ ss CADprocessor {
                chopIsOn = OFF;
             }
 
-            printf("startChopControl - giving eventSem semaphore\n");
-            semGive(eventSem); 
+            epicsEventSignal(eventSem); 
          }   
 
       }   state waitForChopResponse   
@@ -3359,19 +3380,17 @@ ss CADprocessor {
          pvPut(cadProcessorState);
 
          pvGet(bandwidth);
-
-         %{
-            if(semTake(refMemFree, SEM_TIMEOUT) ==  OK)
+%{
+            if(epicsMutexTryLock(refMemFree))
             {
                scsPtr->page0.bandwidth = bandwidth;
-               semGive(refMemFree);
+               epicsMutexUnlock(refMemFree);
             }
             else
             {
-               errorLog("startBandwidth - refMemFree timeout", 1, ON);
+               errorLog("state startBandwidth - couldn't obtain refMemFree mutex", 1, ON);
             }
-         }%
-
+}%
          writeCommand(BANDWIDTH_CHANGE);
 
          strncpy(bandwidthCarMessIn, "", MAX_STRING_SIZE - 1);
@@ -3380,6 +3399,9 @@ ss CADprocessor {
       }   state idle
    }
 
+
+
+#ifdef MK
    /* ==================================================================== */
    /* INDENT OFF */
    /*
@@ -3406,6 +3428,7 @@ ss CADprocessor {
 
         } state idle
    }
+#endif
 
    /* ==================================================================== */
    /* INDENT OFF */
@@ -3427,8 +3450,8 @@ ss CADprocessor {
          else if(guideSimStart == 1) {
             myOldGuideSimState = 1;
 
-            tiltPidOn = 0;
-            pvPut(tiltPidOn);
+            tiltPidOnSim = 0;
+            pvPut(tiltPidOnSim);
         
             tiltpidDir = 2;
             pvPut(tiltpidDir);
@@ -3436,8 +3459,8 @@ ss CADprocessor {
             tiltpidDir = 3;
             pvPut(tiltpidDir);
 
-            focusPidOn = 0;
-            pvPut(focusPidOn);
+            focusPidOnSim = 0;
+            pvPut(focusPidOnSim);
             
             focuspidDir = 2;
             pvPut(focuspidDir);
@@ -3452,8 +3475,8 @@ ss CADprocessor {
          {
             myOldGuideSimState = 0;
 
-            tiltPidOn = 1;
-            pvPut(tiltPidOn);
+            tiltPidOnSim = 1;
+            pvPut(tiltPidOnSim);
         
             tiltpidDir = 2;
             pvPut(tiltpidDir);
@@ -3461,8 +3484,8 @@ ss CADprocessor {
             tiltpidDir = 3;
             pvPut(tiltpidDir);
 
-            focusPidOn = 1;
-            pvPut(focusPidOn);
+            focusPidOnSim = 1;
+            pvPut(focusPidOnSim);
             
             focuspidDir = 2;
             pvPut(focuspidDir);
@@ -3514,9 +3537,8 @@ ss CADprocessor {
          pvGet(xPosTol);
          pvGet(yPosTol);
          pvGet(xyPosDeadband);
-
-         %{
-            if(semTake(refMemFree, SEM_TIMEOUT) == OK)
+%{
+            if(epicsMutexTryLock(refMemFree))
             {
                scsPtr->page0.xTiltTolerance        = (float) xTiltTol;
                scsPtr->page0.yTiltTolerance        = (float) yTiltTol;
@@ -3524,16 +3546,16 @@ ss CADprocessor {
                scsPtr->page0.xPositionTolerance    = (float) xPosTol;
                scsPtr->page0.yPositionTolerance    = (float) yPosTol;          
                scsPtr->page0.xyPositionDeadband    = (float) xyPosDeadband;          
-               semGive(refMemFree);
+               epicsMutexUnlock(refMemFree);
             }
             else
             {
-               errorLog("startTolerance - timeout on refMemFree", 1, ON);
+               errorLog("state startTolerance - couldn't obtain refMemFree mutex", 1, ON);
             }
-         }%
 
          writeCommand(TOLERANCE_CHANGE);
          writeCommand(XY_DEADBAND_CHANGE);
+}%
 
          strncpy(toleranceCarMessIn, "", MAX_STRING_SIZE - 1);
          pvPut(toleranceCarMessIn);
@@ -3594,7 +3616,7 @@ ss CADprocessor {
 /* ===================================================================== */
 
 ss followDemandProcessing {
-   state entry {
+   state init {
       when() {
          followDemandState = FOLDEMANDENTRY; 
          pvPut(followDemandState);
@@ -3675,7 +3697,7 @@ ss followDemandProcessing {
 /* ===================================================================== */
 
 ss monitorSad {
-   state entry {
+   state init {
       when() {
          monitorSadState = MONSADENTRY; 
          pvPut(monitorSadState);
@@ -3688,7 +3710,8 @@ ss monitorSad {
          monitorSadState = UPDATESAD; 
          pvPut(monitorSadState);
 
-         if(semTake(refMemFree, SEM_TIMEOUT) == OK) {
+%{
+         if(epicsMutexTryLock(refMemFree)) {
 
             if(scsPtr->page1.inPosition != 0 || followOn || guideOn)
                strncpy(inPositionSad, "TRUE", MAX_STRING_SIZE - 1);
@@ -3735,12 +3758,13 @@ ss monitorSad {
             }
 
             tempSad = scsPtr->page1.enclosureTemp;
-            semGive(refMemFree);
+            epicsMutexUnlock(refMemFree);
          }
          else
          {
-            logMsg("updateSad - refMemFree timeout\n", 0, 0, 0, 0, 0, 0);
+            errorLog("state updateSad - couldn't obtain refMemFree mutex", 1, ON);
          }
+}%
 
          pvPut(inPositionSad);
          /*pvPut(topEndSad);*/
@@ -3868,13 +3892,13 @@ ss monitorProcess {
          monitorProcessState = UPDATEPARAMETERS; 
          pvPut(monitorProcessState);
 
-         if(semTake(refMemFree, SEM_TIMEOUT) == OK) {
+         if(epicsMutexTryLock(refMemFree)) {
             /* invert sense of in position*/
             coincidence = !scsPtr->page1.inPosition;
-            semGive(refMemFree);
+            epicsMutexUnlock(refMemFree);
          }
          else {
-            logMsg("updateParameters - refMemFree timeout\n", 0, 0, 0, 0, 0, 0);
+            errorLog("state updateParameters - couldn't obtain refMemFree mutex", 1, ON);
          }
 
          pvPut(coincidence);
@@ -3997,7 +4021,7 @@ ss rebootScs {
    }
 
    state proceedWithRebootPark {
-      when(servoOnStatus == 0) {
+      when(servoOnStat == 0) {
          printf("mirror control disable - proceed with move\n");
 
          myscsState = PARKED;
@@ -4013,8 +4037,8 @@ ss rebootScs {
          parkPosition.yPos   = yPosTcsDef;
 
          tcs2m2(&parkPosition);
-
-         if(semTake(setPointFree, SEM_TIMEOUT) == OK) {
+%{
+         if(epicsMutexTryLock(setPointFree)) {
             setPoint.xTiltA = parkPosition.xTiltNew;
             setPoint.yTiltA = parkPosition.yTiltNew;
             setPoint.zFocus = parkPosition.zFocusNew;
@@ -4025,12 +4049,12 @@ ss rebootScs {
             setPoint.xPosition = parkPosition.xPosNew;
             setPoint.yPosition = parkPosition.yPosNew;
 
-            semGive(setPointFree);
+            epicsMutexUnlock(setPointFree);
          }
          else {
-            logMsg("proceedWithRebootPark - setPointFree timeout\n", 0, 0, 0, 0, 0, 0);
+            errorLog("state proceedWithRebootPark - couldn't obtain setPointFree mutex", 1, ON);
          }
-
+}%
       } state rebootParkWaitForCoincidence
 
 
@@ -4087,7 +4111,7 @@ ss rebootScs {
             eventConfig.on = 0;    /* make sure you do not send an ON */
             eventConfig.m2Servo = OFF;
             eventConfig.m2Power = OFF;
-            semGive(eventSem); 
+            epicsEventSignal(eventSem); 
          }
          else {
             errorLog("waitForParkReboot - command not acknowledged", 1, ON);
@@ -4128,7 +4152,7 @@ ss rebootScs {
             eventConfig.on = 0;    /* make sure you do not send an ON */
             eventConfig.m2Servo = OFF;
             eventConfig.m2Power = OFF;
-            semGive(eventSem); 
+            epicsEventSignal(eventSem); 
          }
          else {
             errorLog("waitForParkReboot - command not acknowledged", 1, ON);
@@ -4149,7 +4173,7 @@ ss rebootScs {
             eventConfig.on = 0;    /* make sure you do not send an ON */
             eventConfig.m2Servo = ON;
             eventConfig.m2Power = ON;
-            semGive(eventSem); 
+            epicsEventSignal(eventSem); 
          }
          else {
             errorLog("powerCycleCEM - command not acknowledged", 1, ON);
@@ -4187,8 +4211,8 @@ ss rebootScs {
 
          /* if logging file is open, close it */
 
-         if(loggingNow != OFF)
-            %%scsLogDestruct();
+         //if(loggingNow != OFF)
+         //   %%scsLogDestruct();
 
          %%reboot(BOOT_QUICK_AUTOBOOT);
 

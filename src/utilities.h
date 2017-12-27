@@ -50,6 +50,14 @@
 #include <epicsMutex.h>
 #include <epicsEvent.h>
 #include <errlog.h>
+#include <epicsMessageQueue.h>
+#include <epicsThread.h>
+
+
+#if defined (__rtems__)
+#include <os/RTEMS/devIocStatsOSD.h>   /* for reboot() */
+#include <bsp/bootcard.h>              /* for bsp_reset() */
+#endif
 
 /* Define true/false, on/off etc */
 
@@ -68,6 +76,8 @@
 
 #define PI              ((double)3.14159265)
 
+#define MSG_Q_EMPTY   (-1)
+
 
 /* Define conversion factors */
 
@@ -85,8 +95,13 @@
                                SCS internal state name */
 #define RUNNING         2
 
+#ifdef MK
 #define MAX_SOURCES     5       /* number of guide sources - 
                    pwfs1, pwfs2, oiwfs, gaos, gyro    */
+#else
+#define MAX_SOURCES     6       /* number of guide sources - 
+                   pwfs1, pwfs2, oiwfs, gaos, gpi, gyro    */
+#endif
 
 /* health related items */
 
@@ -326,7 +341,7 @@ long readHealthInit(struct genSubRecord *pgsub);
 
 long readHealth(struct genSubRecord *pgsub);
 
-int loadInitFiles(void);
+int loadInitFiles(void *);
 
 double confine(double value, double upper, double lower);
 
@@ -366,6 +381,7 @@ extern epicsEventId pvLoadComplete;
 
 extern frameOfReference frame;
 
+#ifdef MK
 typedef struct {
     double Snew[2][1];
     double Sold[2][1];
@@ -490,7 +506,7 @@ int checkGuideModeChange( long mode);
 #define PHASOR_AMPLITUDE_HIGHLIMIT 1.0
 #define PHASOR_SR_LOWLIMIT 25.0
 #define PHASOR_SR_HIGHLIMIT 200.0
-
+#endif
 
 
 #endif
